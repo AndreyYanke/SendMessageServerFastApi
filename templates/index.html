@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Чат сообщений</title>
+</head>
+<body>
+
+<div class="page">
+    <h1>Чат сообщений</h1>
+  <div class="form">
+    <form action="" onsubmit="return sendMessage(event)" class="login-form">
+      <input type="text" placeholder="Enter your message" id="messageText" autocomplete="off"/>
+        <script src="/static/script.js"></script>
+      <button class="classes">Отправить сообщение</button>
+    </form>
+        <script>
+            var ws = new WebSocket("ws://localhost:8000/ws");
+            ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                message_json = JSON.parse(event.data)
+                message_num = message_json['message_number']
+                message_out = message_json['send_message']
+                message_send_time = message_json['hour']+ ':' + message_json['minute'] + ':' +
+                                + message_json['second']
+                message_send_data = message_json['day_of_week'] + ', ' + message_json['day'] + ' ' +
+                                    message_json['month'] + '  ' + message_json['year']
+                var content = document.createTextNode(message_num + '. Пользователь направил сообщение: ' + message_out +
+                            ',время сообщения:  ' + message_send_time + ', дата сообщения: ' +
+                             message_send_data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            };
+            function sendMessage(event) {
+                var input = document.getElementById("messageText");
+                var now = new Date();
+                var days_of_week = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
+                var now_day_of_week = days_of_week[now.getDay()];
+                var months = ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября",
+                                "Октября", "Ноября", "Декабря"];
+                var now_month = months[now.getMonth()];
+                var now_day = now.getDate()
+                var now_year = now.getFullYear()
+                var now_hour = now.getHours();
+                var now_minute = now.getMinutes();
+                var now_second = now.getSeconds();
+                let message_data = {
+                                  send_message: input.value,
+                                  day: now_day,
+                                  day_of_week: now_day_of_week,
+                                  month: now_month,
+                                  year: now_year,
+                                  hour: now_hour,
+                                  minute: now_minute,
+                                  second: now_second
+                                };
+                let json_message = JSON.stringify(message_data);
+                ws.send(json_message)
+                input.value = ''
+                event.preventDefault()
+            }
+        </script>
+  </div>
+
+</div>
+
+ <ul id='messages' class="first">
+        </ul>
+
+
+</body>
+</html>
